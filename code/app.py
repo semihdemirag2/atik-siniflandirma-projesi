@@ -22,12 +22,17 @@ CLASS_NAMES = [
 ]
 
 CLASS_TRANSLATIONS = {
-    "Biomuell": "Organik atık",
-    "GelberSack": "Ambalaj / plastik atığı",
+    "Biomuell": "Organik Atık",
+    "GelberSack": "Ambalaj / Plastik Atığı",
     "Glas": "Cam",
     "Papier": "Kağıt",
-    "Restmuell": "Genel evsel atık",
-    "Sondermuell": "Özel / tehlikeli atık",
+    "Restmuell": "Genel Evsel Atık",
+    "Sondermuell": "Özel / Tehlikeli Atık",
+}
+
+DISPLAY_NAMES = {
+    class_name: f"{turkish_name} ({class_name})"
+    for class_name, turkish_name in CLASS_TRANSLATIONS.items()
 }
 
 IMAGE_SIZE = (224, 224)
@@ -72,6 +77,15 @@ st.markdown(
         font-weight: 700;
         margin-bottom: 0.65rem;
     }
+    .result-line {
+        color: #111827;
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    .result-key {
+        color: #374151;
+        font-weight: 650;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -113,17 +127,18 @@ def create_probability_chart(probabilities: np.ndarray) -> plt.Figure:
     percentages = probabilities * 100
     colors = ["#2563eb" if value == percentages.max() else "#94a3b8" for value in percentages]
 
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(9, 4.8))
     y_positions = np.arange(len(CLASS_NAMES))
 
     ax.barh(y_positions, percentages, color=colors)
     ax.set_yticks(y_positions)
-    ax.set_yticklabels(CLASS_NAMES)
+    ax.set_yticklabels([DISPLAY_NAMES[class_name] for class_name in CLASS_NAMES])
     ax.invert_yaxis()
     ax.set_xlim(0, 100)
     ax.set_xlabel("Olasılık (%)")
     ax.set_title("Sınıf Olasılıkları")
     ax.grid(axis="x", alpha=0.25)
+    ax.tick_params(axis="y", labelsize=9)
 
     for index, value in enumerate(percentages):
         ax.text(min(value + 1, 98), index, f"%{value:.2f}", va="center", fontsize=9)
@@ -143,7 +158,7 @@ def render_sidebar() -> None:
     st.sidebar.divider()
     st.sidebar.caption("Sınıflar")
     for class_name in CLASS_NAMES:
-        st.sidebar.write(f"**{class_name}**: {CLASS_TRANSLATIONS[class_name]}")
+        st.sidebar.write(f"**{CLASS_TRANSLATIONS[class_name]}** → {class_name}")
 
 
 def main() -> None:
@@ -154,6 +169,10 @@ def main() -> None:
         '<div class="subtitle">Bu uygulama, MobileNetV2 tabanlı transfer öğrenme modeli kullanarak '
         "yüklenen atık görselinin sınıfını tahmin eder.</div>",
         unsafe_allow_html=True,
+    )
+    st.info(
+        "Bu sistem, yüklenen atık görselini 6 farklı atık sınıfından birine ayırmak için "
+        "MobileNetV2 tabanlı transfer öğrenme modeli kullanır."
     )
 
     if not MODEL_PATH.exists():
@@ -211,12 +230,18 @@ def main() -> None:
                 st.markdown(
                     f"""
                     <div class="result-box">
-                        <div class="result-label">Tahmin</div>
-                        <div class="result-value">{best_class}</div>
-                        <div class="result-label">Türkçe Karşılığı</div>
-                        <div class="result-value">{CLASS_TRANSLATIONS[best_class]}</div>
-                        <div class="result-label">Güven Oranı</div>
-                        <div class="result-value">%{best_probability * 100:.2f}</div>
+                        <div class="result-line">
+                            <span class="result-key">Tahmin Edilen Sınıf:</span>
+                            {CLASS_TRANSLATIONS[best_class]}
+                        </div>
+                        <div class="result-line">
+                            <span class="result-key">Orijinal Etiket:</span>
+                            {best_class}
+                        </div>
+                        <div class="result-line">
+                            <span class="result-key">Güven Oranı:</span>
+                            %{best_probability * 100:.2f}
+                        </div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -228,6 +253,12 @@ def main() -> None:
                 st.error(f"Tahmin sırasında hata oluştu: {exc}")
         else:
             st.info("Görsel yüklendikten sonra sonucu görmek için **Tahmin Et** butonuna basın.")
+
+    st.divider()
+    st.caption(
+        "Not: Model tahmini, eğitim veri setindeki görsel örüntülere göre yapılmaktadır. "
+        "Gerçek atık ayrıştırma kararlarında yerel belediye kuralları dikkate alınmalıdır."
+    )
 
 
 if __name__ == "__main__":
