@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.venv/
+venv/
+env/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Large/local data and generated artifacts
+dataset/*
+models/*
+outputs/*
+report/*
+
+# Keep project folders in Git
+!dataset/.gitkeep
+!models/.gitkeep
+!outputs/.gitkeep
+!report/.gitkeep
+
+# Local nested repository accidentally created by tools or manual tests
+atık-sınıflandırma-proje/
