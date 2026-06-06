@@ -110,6 +110,22 @@ python code\predict_image.py
 
 Program sizden tahmin edilecek görselin tam yolunu ister. Ardından en olası sınıfı, Türkçe karşılığını ve tüm sınıfların olasılıklarını ekrana yazdırır.
 
+## Streamlit arayüzü
+
+Projede basit ve modern bir Streamlit arayüzü de bulunur. Arayüz üzerinden görsel yükleyebilir, eğitilmiş MobileNetV2 modelini kullanarak tahmin yapabilir ve tüm sınıfların olasılıklarını bar chart olarak görebilirsiniz.
+
+Arayüzü çalıştırmak için:
+
+```powershell
+streamlit run code/app.py
+```
+
+Model dosyası şu konumda olmalıdır:
+
+```text
+models/trashpanda_mobilenetv2_model.h5
+```
+
 ## Outputs klasöründe oluşacak dosyalar
 
 Eğitimden sonra `outputs` klasöründe şu dosyalar oluşur:
