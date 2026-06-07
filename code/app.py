@@ -5,7 +5,6 @@ import tempfile
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-import tensorflow as tf
 from PIL import Image
 
 
@@ -93,8 +92,10 @@ st.markdown(
 
 
 @st.cache_resource(show_spinner=False)
-def load_model(model_path: str) -> tf.keras.Model:
+def load_model(model_path: str):
     """Eğitilmiş modeli bir kez yükler ve Streamlit oturumu boyunca cache'ler."""
+    import tensorflow as tf
+
     source_path = Path(model_path)
 
     # h5py bazı Windows kurulumlarında Türkçe karakter içeren yollardan .h5 okuyamayabilir.
@@ -115,6 +116,8 @@ def load_model(model_path: str) -> tf.keras.Model:
 
 def prepare_image(image: Image.Image) -> np.ndarray:
     """Yüklenen görseli MobileNetV2 modelinin beklediği formata dönüştürür."""
+    import tensorflow as tf
+
     image = image.convert("RGB")
     image = image.resize(IMAGE_SIZE, RESAMPLE_FILTER)
     image_array = np.asarray(image, dtype=np.float32)
