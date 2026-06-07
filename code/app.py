@@ -5,6 +5,7 @@ import tempfile
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
+import streamlit.components.v1 as components
 from PIL import Image
 
 
@@ -35,7 +36,9 @@ DISPLAY_NAMES = {
 }
 
 IMAGE_SIZE = (224, 224)
-SUPPORTED_FORMATS = ["jpg", "jpeg", "png", "webp"]
+IMAGE_FORMATS = ["jpg", "jpeg", "png", "webp"]
+HTML_FORMATS = ["html", "htm"]
+SUPPORTED_FORMATS = IMAGE_FORMATS + HTML_FORMATS
 RESAMPLE_FILTER = getattr(Image, "Resampling", Image).LANCZOS
 
 
@@ -189,28 +192,38 @@ def main() -> None:
     with left_col:
         st.subheader("Görsel Yükle")
         uploaded_file = st.file_uploader(
-            "Atık görselini seçin",
+            "Atık görselini veya HTML dosyasını seçin",
             type=SUPPORTED_FORMATS,
             accept_multiple_files=False,
         )
 
         image = None
         if uploaded_file is not None:
+            uploaded_extension = Path(uploaded_file.name).suffix.lower().lstrip(".")
             try:
-                image = Image.open(uploaded_file)
-                st.image(image, caption="Yüklenen görsel", use_container_width=True)
+                if uploaded_extension in HTML_FORMATS:
+                    html_content = uploaded_file.getvalue().decode("utf-8", errors="replace")
+                    st.caption("Yüklenen HTML önizlemesi")
+                    components.html(html_content, height=420, scrolling=True)
+                    st.warning(
+                        "HTML dosyası kabul edildi ve önizlendi. Model tahmini yapmak için "
+                        "HTML içindeki görseli ayrıca jpg, jpeg, png veya webp olarak yükleyin."
+                    )
+                else:
+                    image = Image.open(uploaded_file)
+                    st.image(image, caption="Yüklenen görsel", use_container_width=True)
             except Exception as exc:
-                st.error(f"Görsel okunamadı: {exc}")
+                st.error(f"Dosya okunamadı: {exc}")
 
         predict_clicked = st.button(
             "Tahmin Et",
             type="primary",
             use_container_width=True,
-            disabled=uploaded_file is None or not MODEL_PATH.exists(),
+            disabled=image is None or not MODEL_PATH.exists(),
         )
 
         if uploaded_file is None:
-            st.info("Tahmin yapmak için önce jpg, jpeg, png veya webp formatında bir görsel yükleyin.")
+            st.info("jpg, jpeg, png, webp veya html formatında bir dosya yükleyebilirsiniz.")
 
     with right_col:
         st.subheader("Tahmin Sonucu")
